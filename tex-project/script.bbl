@@ -1,0 +1,20 @@
+\begin{thebibliography}{}
+
+\bibitem[Bayes and Price, 1763]{bayes1763chances}
+Bayes, T. and Price, R. (1763).
+\newblock An essay towards solving a problem in the doctrine of chances.
+\newblock {\em Philosophical Transactions (1683-1775)}, 53:370--418.
+
+\bibitem[Razali et~al., 2011]{razali2011power}
+Razali, N.~M., Wah, Y.~B., et~al. (2011).
+\newblock Power comparisons of shapiro-wilk, kolmogorov-smirnov, lilliefors and
+  anderson-darling tests.
+\newblock {\em Journal of statistical modeling and analytics}, 2(1):21--33.
+
+\bibitem[Wilks, 1938]{wilks1938large}
+Wilks, S.~S. (1938).
+\newblock The large-sample distribution of the likelihood ratio for testing
+  composite hypotheses.
+\newblock {\em The annals of mathematical statistics}, 9(1):60--62.
+
+\end{thebibliography}

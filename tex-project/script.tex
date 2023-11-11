@@ -1,0 +1,1164 @@
+\documentclass[11pt, aspectratio=169]{beamer}
+\usepackage{cmap} % allow copy from presentation
+\usepackage{amsmath, amssymb, amsfonts, bm} % include math fonts
+\usepackage{float, booktabs} % for tables
+\usepackage{verbatim} % for multiline comments
+\setbeamertemplate{navigation symbols}{} % remore navigation symbols
+%\usetheme{Boadilla} % Boadilla theme
+\usetheme{Copenhagen} % set beamer theme
+
+\usepackage{graphicx} % для включения в работу построенных графиков
+\graphicspath{{./source/photos}}
+
+\usepackage{pgfplots} % для построения графиков
+\usetikzlibrary{spy}
+\pgfplotsset{compat = 1.15}
+\usepgfplotslibrary{colorbrewer}
+\usetikzlibrary{pgfplots.statistics, pgfplots.colorbrewer}
+
+\setbeamertemplate{caption}[numbered] % numbering plots
+\setbeamertemplate{bibliography item}{\insertbiblabel} % insert bibliograpy
+
+\newcommand{\iid}{\overset{\text{i.i.d.}}{\sim}}
+\newcommand{\emphtext}[1]{\color{black} \textbf{#1}}
+\newcommand{\emphmath}[1]{\mathcal{#1}}
+\newcommand{\Prob}[1]{\text{Pr}\left[#1\right]}
+\newcommand{\Pdf}[2]{f_{#1} \left(#2\right)}
+\newcommand{\Ans}[1]{\textbf{Answer:} #1}
+\newcommand{\Expect}[1]{\mathbb{E} \left(#1\right)}
+\newcommand{\Var}[1]{\mathbb{V} \left(#1\right)}
+\newcommand{\diff}[2]{\frac{\text{d}}{\text{d} #1} #2}
+\newcommand{\intvar}[1]{\; \text{d}#1}
+\newcommand{\N}{\mathcal{N}}
+\newcommand{\R}{\mathbb{R}}
+
+\pgfmathdeclarefunction{gauss}{2}{\pgfmathparse{1/(#2*sqrt(2*pi))*exp(-((x-#1)^2)/(2*#2^2))}}
+
+\title{Na\"{i}ve Bayesian Classifier (method review)}
+\author[Grishin A.Y.]{{\large Grishin~Andrey} ({\small group: M05-318a})\\\vspace{15pt}Department of Machine Learning and Digital Humanities\\\vspace{15pt}}
+
+\institute[MIPT]{\LARGE Moscow Institute of Physics and Technology}
+\date{\today}
+
+\begin{document}
+    
+    \section{Introduction} 
+    \begin{frame}
+        \titlepage
+    \end{frame}
+    
+    \begin{frame}{Plan}
+    	\tableofcontents
+    \end{frame}
+      
+    \subsection{What is Bayesian Classifier?}
+    \begin{frame}{What is Bayesian Classifier?}
+    	\large
+    	\noindent Bayesian Classifier --- \textbf{probabilistic} classification model:\\[10pt]
+    	\begin{itemize}
+    		\item \emphtext{Foundation:} Bayes's theorem.\\[6pt]
+    		\item \emphtext{Authors:} Thomas Bayes, Richard Price.\\[6pt]
+    		\item \emphtext{Title:} ``An Essay towards Solving a Problem in the Doctrine of Chances''\footnote{Reference to the article \cite{bayes1763chances}.}.\\[6pt]
+    		\item \emphtext{Initial use:} Estimate distribution parameters.\\[6pt]
+    		\item \emphtext{Year:} 1763
+    	\end{itemize}
+    \end{frame}
+    
+    \subsection{Why (what for) do we need it?}
+    \begin{frame}{Why (what for) do we need it?}
+    	\large
+    	\begin{itemize}
+    		\item \textbf{Classifier:}\\[10pt]
+    		\begin{itemize}
+    			\item \emphtext{Segregate} data observations.\\[10pt]
+    			\item \emphtext{Baseline} classification models.\\[10pt]
+    		\end{itemize}
+    		\item \emphtext{Theorem:}\\[10pt]
+    		\begin{itemize}
+    			\item \emphtext{Estimate} distribution parameters (normal, binomial, etc.).\\[10pt]
+    			\item \emphtext{Estimate} posterior probabilities of events.\\[10pt]
+    		\end{itemize}
+    	\end{itemize}
+    \end{frame}
+    
+    \section{Maths of Bayesian Classifier}
+    \subsection{Model assumptions}
+    \begin{frame}{Model assumptions}
+    	\emphtext{Let} $X \in \R^{n \times m}$, $y \in \left\{C_1, C_2, \ldots, C_k\right\}$. \emphtext{Then} need to find $f(\cdot)$ such as:
+    	\begin{equation}
+    		\Expect{y \mid X} = f\left(X\right) \;\; \Leftrightarrow \;\; y = f\left(X\right) + \epsilon, \;\;\;\; \epsilon \sim \N\left(0, \sigma^2\right)
+    	\end{equation}
+    	\noindent  $f\left(\cdot\right) = $ Bayesian Classifier. $X_j \in \R^{1 \times m}: j = \overline{1, n}$ is r.v. $\mu$ and $\Sigma$ estimation -- tough.\\[5pt] 
+    	
+    	\emphtext{Assume}:\\[5pt]
+    	\begin{itemize}
+    		\item $X_j \sim \emphmath{N}\left(\mu, \Sigma \right): \mu \in \R^{m \times 1}, \;\; \Sigma \in \R^{m \times m}$.\\[5pt]
+    		\item $X_j = \left[\xi_1, \ldots, \xi_m\right]: \xi_i  \iid \emphmath{N}\left(\mu_i, \sigma_i^2\right) \Rightarrow \Prob{X_j} = \prod_{i = 1}^{m} \Prob{\xi_{i}}$.\\[10pt]
+    	\end{itemize}
+    	
+    	\noindent \emphtext{Note}: classification $\approx$ regression: probability $\in [0, 1]$.
+    \end{frame}
+    
+    \subsection{Main maths}
+    \begin{frame}[allowframebreaks]{Main maths}    	
+    	\noindent \emphtext{Bayesian theorem} is formalized like this:
+    	\begin{equation}
+    		\Prob{A \mid B} = \dfrac{\Prob{B \mid A} \times \Prob{A}}{\Prob{B}}
+    	\end{equation}
+    	\noindent \emphtext{Bayesian classifier}, where $c_t : t = \overline{1, k}$ is the class number:
+    	\begin{equation}
+    		\label{eqn:problemprob}
+    		\Prob{y_j = c_t \mid X_j} = \dfrac{\Prob{X_j \mid y_j = c_t} \times \Prob{y_j = c_t}}{\Prob{X_j}}
+    	\end{equation}
+    	
+    	\noindent The formula \eqref{eqn:problemprob} can be respectively expressed as:
+    	\begin{equation}
+    		\text{posterior} = \dfrac{\text{likelihood} \times \text{prior}}{\text{evidence}}
+    	\end{equation}
+    	\noindent \emphtext{But} evidence $\Prob{X_j}$ is the same $\forall c_t: t = \overline{1, k}$. Hence, we do not strictly need it.
+    	\begin{equation}
+    		\label{eqn:propprob}
+    		\Prob{y_j = c_t \mid X_j} \propto \Prob{X_j \mid y_j = c_t} \times \Prob{y_j = c_t}
+    	\end{equation}
+    	\noindent \emphtext{After expansion} of the \eqref{eqn:propprob} we almost have the final formula:
+    	\begin{equation}
+    		\label{eqn:expandedprob}
+    		 \Prob{y_j = c_t \mid X_j} \propto \left( \prod_{i = 1}^{m} \Prob{X_{ji}} \right) \times \Prob{y_j = c_t}
+    	\end{equation}
+    	\noindent \emphtext{So}, \eqref{eqn:expandedprob} gives us the expression for $X_j$'s class:
+    	\begin{equation}
+    		\hat{C}_j = \arg\max_{t = \overline{1, k}}\left\{ \left( \prod_{i = 1}^{m} \Prob{X_{ji}} \right) \times \Prob{y_j = c_t} \right\}
+    	\end{equation}
+    	\noindent \emphtext{Q:} What exactly is $\prod_{i = 1}^{m} \Prob{X_{ji}}$ and how to estimate $\left(\mu_j, \sigma_j^2 \right)$?\\[5pt]
+    	\noindent \emphtext{A:} To make things clear, let's reduce the number of \emphtext{features} and \emphtext{classes} to $1$.\\[10pt]
+    	\noindent \emphtext{Assumed} $\emphmath{N}\left(\mu, \sigma^2\right) \Rightarrow 2$ parameters to be estimated. MLE method \cite{wilks1938large}.
+    	\begin{equation}
+    		L = \prod_{j = 1}^{n} \Prob{X_j \mid \mu, \sigma} \equiv \prod_{j = 1}^{n} L\left(\mu, \sigma \mid X_j\right)
+    	\end{equation}
+    	\noindent No doubts to get the following optimization problem:
+    	\begin{equation}
+    		\hat{\mu}, \hat{\sigma} = \arg \max_{\mu, \sigma} \left\{ \prod_{j = 1}^{n} L\left(\mu, \sigma \mid X_j\right) \right\}: \mu \in \R, \;\; \sigma \in \R_{+}
+    	\end{equation}
+    	\noindent \emphtext{Apply} $\ln\left(x\right)$ as extrema is invariant to monotonic increasing transforms.
+    	\begin{equation}
+    		\arg \max_{\mu, \sigma} \left\{ \prod_{j = 1}^{n} L\left(\mu, \sigma \mid X_j\right) \right\} \sim \arg \max_{\mu, \sigma} \left\{ \ln\left(\prod_{j = 1}^{n} L\left(\mu, \sigma \mid X_j\right)\right) \right\}
+    	\end{equation}
+    	\noindent It leads to simplification:
+    	\begin{equation}
+    		\arg \max_{\mu, \sigma} \left\{ \sum_{j = 1}^{n} \ln \Big( L\left(\mu, \sigma \mid X_j\right) \Big) \right\}
+    	\end{equation}
+    	\noindent \emphtext{Finally} to estimate $\mu$ and $\sigma$ we have to optimize $L\left(\mu, \sigma\right) = \sum_{j = 1}^{n} \ln \Big(\Prob{X_j \mid \mu, \sigma}\Big)$.\\[5pt]
+    	\noindent And the result is the following (\emphtext{unbiased} variance):
+    	\begin{equation}
+    		\label{eqn:mle_normal}
+    			 \max_{\mu, \sigma} \left\{\sum_{j = 1}^{n} \ln \left( \dfrac{1}{\sqrt{2\pi\sigma^2}} \exp\left(\dfrac{\left(X_j - \mu \right)^2}{2\sigma^2}\right) \right)\right\} \Rightarrow
+    			 \left\{\begin{array}{lcl}
+    			 	\displaystyle \hat{\mu} &\displaystyle =&\displaystyle \dfrac{\sum_{j = 1}^n X_j}{n}\\\\
+    			 	\displaystyle \hat{\sigma}^2 &\displaystyle =&\displaystyle \dfrac{\sum_{j = 1}^n \left(X_j - \bar{X}\right)^2}{n - 1}
+    			 \end{array}\right.
+    	\end{equation}
+    	\framebreak
+    	
+    	\noindent With $\bm{m}$ i.i.d. features we obtain the following estimation ($i = \overline{1, m}$):
+    	\begin{columns}[t]
+    		\column{0.5\textwidth}
+    		\begin{block}{\textbf{Mean estimation}}
+    			\begin{equation}
+    				\label{eqn:mle_normal_m_features_1}
+    				\hat{\mu}_i = \frac{\sum_{j = 1}^n X_{ji}}{n}
+    			\end{equation}
+    		\end{block}
+    		\column{0.5\textwidth}
+    		\begin{block}{\textbf{Variance estimation}}
+    			\begin{equation}
+    				\label{eqn:mle_normal_m_features_2}
+    				\hat{\sigma}_i^2 = \frac{\sum_{j = 1}^n \left(X_{ji} - \bar{X}_i\right)^2}{n - 1}
+    			\end{equation}
+    		\end{block}
+    	\end{columns}
+    	\framebreak
+    	
+    	\noindent With $\bm{m}$ features and $\bm{k}$ classes estimation \eqref{eqn:mle_normal_m_features_1} \eqref{eqn:mle_normal_m_features_2} turns into ($i = \overline{1, m}$, $t = \overline{1, k}$):
+    	\begin{columns}[t]
+    		\column{0.425\textwidth}
+    		\begin{block}{\textbf{Mean estimation}}
+    			\vspace*{-0.7\baselineskip}
+    			\begin{equation}
+    				\label{eqn:mle_normal_m_features_k_classes_1}
+    				\hat{\mu}_i\left(c_t\right) = \frac{\sum_{j = 1}^n X_{ji} \left[y_{j} = c_t\right]}{\sum_{j = 1}^n \left[y_{j} = c_t\right]}
+    			\end{equation}
+    		\end{block}
+    		\column{0.575\textwidth}
+    		\begin{block}{\textbf{Variance estimation}}
+    			\vspace*{-0.7\baselineskip}
+    			\begin{equation}
+    				\label{eqn:mle_normal_m_features_k_classes_2}
+    				\hat{\sigma}_i^2\left(c_t\right)  = \frac{\sum_{j = 1}^n \left(X_{ji} - \hat{\mu}_i\left(c_t\right)\right)^2 \left[y_{j} = c_t\right]}{\left(\sum_{j = 1}^n \left[y_{j} = c_t\right]\right) - 1}
+    			\end{equation}
+    		\end{block}
+    	\end{columns}
+    	\framebreak
+    	
+    	\noindent For \emphtext{simplicity}, Gaussian NB works if ($X_{ji}\left(c_t\right)$: $\bm{j}$ obs., $\bm{i}$ feat., $\bm{c_t}$ class):
+    	\begin{block}{Na\"{i}ve Bayesian classifier requirement}
+    		\begin{equation}
+    			\forall c_t, i: 
+    			\left\{\begin{array}{l}
+    				t = \overline{1, k}\\
+    				i = \overline{1, m}
+    			\end{array}\right. \exists \;\;
+    			\hat{\mu}_i\left(c_t\right) \wedge \hat{\sigma}^2_{i}\left(c_t\right) \hookrightarrow X_{ji}\left(c_t\right) \sim \emphmath{N}\Big(\hat{\mu}_i\left(c_t\right), \hat{\sigma}^2_{i}\left(c_t\right) \Big)
+    		\end{equation}
+    	\end{block}
+    	\framebreak
+    	
+    	\noindent Multiple distributions can be used:\\[10pt]
+    	\begin{itemize}
+    		\item Normal, Binomial.\\[10pt]
+    		\item Laplacian, Exponential.\\[10pt]
+    		\item Rayleigh's distribution.\\[10pt]
+    		\item etc.
+    	\end{itemize}
+    \end{frame}
+    
+    \section{Iris classification problem}
+    \subsection{Problem state}
+    \begin{frame}[t, allowframebreaks]{Problem state}
+    	\noindent Obtained $X \in \R^{150 \times 4}$, $y \in \left\{0, 1, 2\right\}$. Classification problem: iris dataset.
+    	\begin{columns}[t]
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}[t]
+    				\begin{tabular}{cl}
+    					\toprule
+    					\emphtext{Code} & \emphtext{Name}\\
+    					\midrule[0.02cm]
+    					$0$ & setosa\\[0.385cm]
+    					$1$ & versicolor\\[0.385cm]
+    					$2$ & virginica\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{Iris encoding}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{table}[t]
+    				\begin{tabular}{clc}
+    					\toprule
+    					\emphtext{Code} & \multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Measure}\\
+    					\midrule[0.02cm]
+    					$0$ & sepal length & cm\\[0.1cm]
+    					$1$ & sepal width & cm\\[0.1cm]
+    					$2$ & petal length & cm\\[0.1cm]
+    					$3$ & petal width & cm\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{Feature names}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}[t]
+    				\begin{tabular}{lc}
+    					\toprule
+    					\emphtext{Class} & \emphtext{\# obs.}\\
+    					\midrule[0.02cm]
+    					setosa & $50 \;(0.3)$\\[0.385cm]
+    					versicolor & $50 \;(0.3)$\\[0.385cm]
+    					virginica & $50 \;(0.3)$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{Class balancing}
+    			\end{table}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% Setosa
+    	% sepal length
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=4, ymax=6,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Setosa},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=0] {./source/csv/setosa.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Sepal length}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $5.01$\\[0.1cm]
+    					\emphtext{std} & $0.35$\\[0.1cm]
+    					\emphtext{max} & $5.80$\\[0.1cm]
+    					\emphtext{$75$\%} & $5.20$\\[0.1cm]
+    					\emphtext{$50$\%} & $5.00$\\[0.1cm]
+    					\emphtext{$25$\%} & $4.80$\\[0.1cm]
+    					\emphtext{min} & $4.30$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=10,
+    						xmin=4, xmax=6,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=0, col sep=space, ] {./source/csv/setosa.csv};
+    						\addplot[domain=4:10, samples=200, color=red, thick] {gauss(5.01, 0.352) * 6};
+    						\legend{{\emphtext{Setosa}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+		\framebreak
+		
+		% sepal width
+		\begin{columns}
+			\begin{column}{0.3\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							boxplot/draw direction = y,
+							ymin=2.5, ymax=4.5,
+							width=0.7\textwidth, height=1.35\textwidth,
+							xtick= {1},
+							xticklabel style={align=center, font=\small},
+							xticklabel={Setosa},
+							minor y tick num = 3
+							]
+							\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=1] {./source/csv/setosa.csv};
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Sepal width}}
+				\end{figure}
+			\end{column}
+			
+			\begin{column}{0.3\textwidth}
+				\begin{table}
+					\begin{tabular}{lc}
+						\toprule
+						\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+						\midrule[0.02cm]
+						\emphtext{mean} & $3.43$\\[0.1cm]
+						\emphtext{std} & $0.38$\\[0.1cm]
+						\emphtext{max} & $4.40$\\[0.1cm]
+						\emphtext{$75$\%} & $3.68$\\[0.1cm]
+						\emphtext{$50$\%} & $3.40$\\[0.1cm]
+						\emphtext{$25$\%} & $3.20$\\[0.1cm]
+						\emphtext{min} & $2.30$\\
+						\midrule[0.02cm]
+					\end{tabular}
+					\caption{\emphtext{Stats.}}
+				\end{table}
+			\end{column}
+			\begin{column}{0.4\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							ymajorgrids=true, ymin=0, ymax=12,
+							xmin=2, xmax=4.75,
+							width=1.1\textwidth,
+							height=\textwidth,
+							]
+							\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=1, col sep=space, ] {./source/csv/setosa.csv};
+							\addplot[samples=200, color=red, thick] {gauss(3.43, 0.38) * 8};
+							\legend{{\emphtext{Setosa}}}
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Distribution}}
+				\end{figure}
+			\end{column}
+		\end{columns}
+		\framebreak
+		
+		% petal length
+		\begin{columns}
+			\begin{column}{0.3\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							boxplot/draw direction = y,
+							ymin=1.15, ymax=1.75,
+							width=0.7\textwidth, height=1.35\textwidth,
+							xtick= {1},
+							xticklabel style={align=center, font=\small},
+							xticklabel={Setosa},
+							minor y tick num = 3
+							]
+							\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=2] {./source/csv/setosa.csv};
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Petal length}}
+				\end{figure}
+			\end{column}
+			
+			\begin{column}{0.3\textwidth}
+				\begin{table}
+					\begin{tabular}{lc}
+						\toprule
+						\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+						\midrule[0.02cm]
+						\emphtext{mean} & $1.46$\\[0.1cm]
+						\emphtext{std} & $0.17$\\[0.1cm]
+						\emphtext{max} & $1.90$\\[0.1cm]
+						\emphtext{$75$\%} & $1.58$\\[0.1cm]
+						\emphtext{$50$\%} & $1.50$\\[0.1cm]
+						\emphtext{$25$\%} & $1.40$\\[0.1cm]
+						\emphtext{min} & $1.00$\\
+						\midrule[0.02cm]
+					\end{tabular}
+					\caption{\emphtext{Stats.}}
+				\end{table}
+			\end{column}
+			\begin{column}{0.4\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							ymajorgrids=true, ymin=0, ymax=15,
+							xmin=1, xmax=2,
+							width=1.1\textwidth,
+							height=\textwidth,
+							]
+							\addplot [hist={bins=10}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=2, col sep=space, ] {./source/csv/setosa.csv};
+							\addplot[samples=300, color=red, thick] {gauss(1.462, 0.174) * 5};
+							\legend{{\emphtext{Setosa}}}
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Distribution}}
+				\end{figure}
+			\end{column}
+		\end{columns}
+		\framebreak
+		
+		% petal width
+		\begin{columns}
+			\begin{column}{0.3\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							boxplot/draw direction = y,
+							ymin=0, ymax=0.5,
+							width=0.7\textwidth, height=1.35\textwidth,
+							xtick= {1},
+							xticklabel style={align=center, font=\small},
+							xticklabel={Setosa},
+							minor y tick num = 3
+							]
+							\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=3] {./source/csv/setosa.csv};
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Petal width}}
+				\end{figure}
+			\end{column}
+			
+			\begin{column}{0.3\textwidth}
+				\begin{table}
+					\begin{tabular}{lc}
+						\toprule
+						\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+						\midrule[0.02cm]
+						\emphtext{mean} & $0.25$\\[0.1cm]
+						\emphtext{std} & $0.11$\\[0.1cm]
+						\emphtext{max} & $0.60$\\[0.1cm]
+						\emphtext{$75$\%} & $0.30$\\[0.1cm]
+						\emphtext{$50$\%} & $0.20$\\[0.1cm]
+						\emphtext{$25$\%} & $0.20$\\[0.1cm]
+						\emphtext{min} & $0.10$\\
+						\midrule[0.02cm]
+					\end{tabular}
+					\caption{\emphtext{Stats.}}
+				\end{table}
+			\end{column}
+			\begin{column}{0.4\textwidth}
+				\begin{figure}[H]
+					\begin{tikzpicture}
+						\begin{axis}[
+							ymajorgrids=true, ymin=0, ymax=30,
+							xmin=-0.25, xmax=0.75,
+							width=1.1\textwidth,
+							height=\textwidth,
+							]
+							\addplot [hist={bins=10}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=3, col sep=space, ] {./source/csv/setosa.csv};
+							\addplot[domain=-0.25:0.75, samples=400, color=red, thick] {gauss(0.246, 0.105) * 5};
+							\legend{{\emphtext{Setosa}}}
+						\end{axis}
+					\end{tikzpicture}
+					\caption{\emphtext{Distribution}}
+				\end{figure}
+			\end{column}
+		\end{columns}
+    	\framebreak
+    	
+    	% Versicolor
+    	% sepal length
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=4.75, ymax=7.25,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Versicolor},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=0] {./source/csv/versicolor.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Sepal length}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $5.94$\\[0.1cm]
+    					\emphtext{std} & $0.52$\\[0.1cm]
+    					\emphtext{max} & $7.00$\\[0.1cm]
+    					\emphtext{$75$\%} & $6.30$\\[0.1cm]
+    					\emphtext{$50$\%} & $5.90$\\[0.1cm]
+    					\emphtext{$25$\%} & $5.60$\\[0.1cm]
+    					\emphtext{min} & $4.90$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=15,
+    						xmin=4, xmax=8,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=0, col sep=space, ] {./source/csv/versicolor.csv};
+    						\addplot[domain=4:10, samples=200, color=red, thick] {gauss(5.936, 0.516) * 10};
+    						\legend{{\emphtext{Versicolor}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% sepal width
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						%ymin=2.5, ymax=4.5,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Versicolor},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=1] {./source/csv/versicolor.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Sepal width}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $2.77$\\[0.1cm]
+    					\emphtext{std} & $0.31$\\[0.1cm]
+    					\emphtext{max} & $3.40$\\[0.1cm]
+    					\emphtext{$75$\%} & $3.00$\\[0.1cm]
+    					\emphtext{$50$\%} & $2.80$\\[0.1cm]
+    					\emphtext{$25$\%} & $2.53$\\[0.1cm]
+    					\emphtext{min} & $2.00$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=15,
+    						xmin=1.5, xmax=4,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=1, col sep=space, ] {./source/csv/versicolor.csv};
+    						\addplot[samples=200, color=red, thick] {gauss(2.77, 0.31) * 8};
+    						\legend{{\emphtext{Versicolor}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% petal length
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=3, ymax=5.25,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Versicolor},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=2] {./source/csv/versicolor.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Petal length}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $4.26$\\[0.1cm]
+    					\emphtext{std} & $0.47$\\[0.1cm]
+    					\emphtext{max} & $5.10$\\[0.1cm]
+    					\emphtext{$75$\%} & $4.60$\\[0.1cm]
+    					\emphtext{$50$\%} & $4.35$\\[0.1cm]
+    					\emphtext{$25$\%} & $4.00$\\[0.1cm]
+    					\emphtext{min} & $3.00$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=20,
+    						xmin=3, xmax=6,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=10}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=2, col sep=space, ] {./source/csv/versicolor.csv};
+    						\addplot[samples=300, domain=2:7, color=red, thick] {gauss(4.26, 0.4699) * 12};
+    						\legend{{\emphtext{Versicolor}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% petal width
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=0.9, ymax=1.9,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Versicolor},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=3] {./source/csv/versicolor.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Petal width}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $1.33$\\[0.1cm]
+    					\emphtext{std} & $0.20$\\[0.1cm]
+    					\emphtext{max} & $1.80$\\[0.1cm]
+    					\emphtext{$75$\%} & $1.50$\\[0.1cm]
+    					\emphtext{$50$\%} & $1.30$\\[0.1cm]
+    					\emphtext{$25$\%} & $1.20$\\[0.1cm]
+    					\emphtext{min} & $1.00$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=25,
+    						xmin=0.5, xmax=2,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=10}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=3, col sep=space, ] {./source/csv/versicolor.csv};
+    						\addplot[domain=0:2, samples=400, color=red, thick] {gauss(1.326, 0.198) * 7};
+    						\legend{{\emphtext{Versicolor}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% Virginica
+    	% sepal length
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=5.5, ymax=8,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Virginica},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=0] {./source/csv/virginica.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Sepal length}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $6.59$\\[0.1cm]
+    					\emphtext{std} & $0.64$\\[0.1cm]
+    					\emphtext{max} & $7.90$\\[0.1cm]
+    					\emphtext{$75$\%} & $6.90$\\[0.1cm]
+    					\emphtext{$50$\%} & $6.50$\\[0.1cm]
+    					\emphtext{$25$\%} & $6.23$\\[0.1cm]
+    					\emphtext{min} & $4.90$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=15,
+    						xmin=4.9, xmax=8.1,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=0, col sep=space, ] {./source/csv/virginica.csv};
+    						\addplot[samples=200, color=red, thick, domain=4:8.5] {gauss(6.59, 0.64) * 10};
+    						\legend{{\emphtext{Virginica}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% sepal width
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						ymin=2.4, ymax=3.8,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Virginica},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=1] {./source/csv/virginica.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Sepal width}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $2.97$\\[0.1cm]
+    					\emphtext{std} & $0.32$\\[0.1cm]
+    					\emphtext{max} & $3.80$\\[0.1cm]
+    					\emphtext{$75$\%} & $3.18$\\[0.1cm]
+    					\emphtext{$50$\%} & $3.00$\\[0.1cm]
+    					\emphtext{$25$\%} & $2.80$\\[0.1cm]
+    					\emphtext{min} & $2.20$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=15,
+    						xmin=2, xmax=4,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=1, col sep=space, ] {./source/csv/virginica.csv};
+    						\addplot[samples=200, color=red, thick, domain=2:4] {gauss(2.974, 0.322) * 8};
+    						\legend{{\emphtext{Virginica}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% petal length
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						%ymin=3, ymax=5.25,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Virginica},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=2] {./source/csv/virginica.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Petal length}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $5.55$\\[0.1cm]
+    					\emphtext{std} & $0.55$\\[0.1cm]
+    					\emphtext{max} & $6.90$\\[0.1cm]
+    					\emphtext{$75$\%} & $5.88$\\[0.1cm]
+    					\emphtext{$50$\%} & $5.55$\\[0.1cm]
+    					\emphtext{$25$\%} & $5.10$\\[0.1cm]
+    					\emphtext{min} & $4.50$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=15,
+    						xmin=3, xmax=8,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=15}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=2, col sep=space, ] {./source/csv/virginica.csv};
+    						\addplot[samples=300, domain=2:8, color=red, thick] {gauss(5.55, 0.552) * 15};
+    						\legend{{\emphtext{Virginica}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    	
+    	% petal width
+    	\begin{columns}
+    		\begin{column}{0.3\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						boxplot/draw direction = y,
+    						%ymin=0.9, ymax=1.9,
+    						width=0.7\textwidth, height=1.35\textwidth,
+    						xtick= {1},
+    						xticklabel style={align=center, font=\small},
+    						xticklabel={Virginica},
+    						minor y tick num = 3
+    						]
+    						\addplot[color=green, boxplot, draw=black, fill=green, thick] table [y index=3] {./source/csv/virginica.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Petal width}}
+    			\end{figure}
+    		\end{column}
+    		
+    		\begin{column}{0.3\textwidth}
+    			\begin{table}
+    				\begin{tabular}{lc}
+    					\toprule
+    					\multicolumn{1}{c}{\emphtext{Name}} & \emphtext{Value}\\
+    					\midrule[0.02cm]
+    					\emphtext{mean} & $2.03$\\[0.1cm]
+    					\emphtext{std} & $0.27$\\[0.1cm]
+    					\emphtext{max} & $2.50$\\[0.1cm]
+    					\emphtext{$75$\%} & $2.30$\\[0.1cm]
+    					\emphtext{$50$\%} & $2.00$\\[0.1cm]
+    					\emphtext{$25$\%} & $1.80$\\[0.1cm]
+    					\emphtext{min} & $1.40$\\
+    					\midrule[0.02cm]
+    				\end{tabular}
+    				\caption{\emphtext{Stats.}}
+    			\end{table}
+    		\end{column}
+    		\begin{column}{0.4\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						ymajorgrids=true, ymin=0, ymax=20,
+    						xmin=1, xmax=3,
+    						width=1.1\textwidth,
+    						height=\textwidth,
+    						]
+    						\addplot [hist={bins=10}, fill=blue, draw opacity=0.5, fill opacity=0.5] table[y index=3, col sep=space, ] {./source/csv/virginica.csv};
+    						\addplot[samples=400, color=red, thick] {gauss(2.026, 0.275) * 7};
+    						\legend{{\emphtext{Virginica}}}
+    					\end{axis}
+    				\end{tikzpicture}
+    				\caption{\emphtext{Distribution}}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    	\framebreak
+    \end{frame}
+    
+    \begin{frame}{Scatter plot (left) and PCA (right) on iris dataset}
+    	\begin{columns}[t]
+    		\begin{column}{0.5\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						minor x tick num = 1,
+    						minor y tick num = 1,
+    						width = 1.1\textwidth,
+    						height = 0.8\textwidth,
+    						%grid = both,
+    						xticklabel={}, yticklabel={},
+    						axis lines=left,
+    						legend pos=south east,
+    						xmin=4, xmax=8,
+    						ymin=0.5, ymax=7,
+    						legend cell align={left},
+    						xlabel={\emphtext{Sepal} length}, ylabel={\emphtext{Petal} length}
+    					]
+    						\addplot [only marks, color=blue, mark=diamond*] table [x=sepal_len, y=petal_len] {./source/csv/setosa.csv};
+    						\addplot [only marks, color=red, mark=triangle*] table [x=sepal_len, y=petal_len] {./source/csv/versicolor.csv};
+    						\addplot [only marks, color=black, mark=pentagon*] table [x=sepal_len, y=petal_len] {./source/csv/virginica.csv};
+    						\legend{{Setosa}, {Versicolor}, {Virginica}};
+    					\end{axis}
+    				\end{tikzpicture}
+    			\end{figure}
+    		\end{column}
+    		\begin{column}{0.5\textwidth}
+    			\begin{figure}[H]
+    				\begin{tikzpicture}
+    					\begin{axis}[
+    						minor x tick num = 1,
+    						minor y tick num = 1,
+    						width = \textwidth,
+    						height = 0.9\textwidth,
+    						xticklabel={}, yticklabel={},
+    						title={\emphtext{\underline{PCA 2 components}}},
+    						xmin=-1.5, xmax=1.5, ymin=-0.4, ymax=0.3,
+    						legend cell align={left},
+    						axis lines=none,
+    						legend pos=south east
+    					]
+    						\addplot [only marks, color=blue, mark=diamond*] table [x=comp_1, y=comp_2]{./source/csv/setosa_pca_2.csv};
+    						\addplot [only marks, color=red, mark=triangle*] table [x=comp_1, y=comp_2] {./source/csv/versicolor_pca_2.csv};
+    						\addplot [only marks, color=black, mark=pentagon*] table [x=comp_1, y=comp_2] {./source/csv/virginica_pca_2.csv};
+    					\end{axis}
+    				\end{tikzpicture}
+    			\end{figure}
+    		\end{column}
+    	\end{columns}
+    \end{frame}
+    
+    \begin{frame}{Shapiro -- Wilk's normality test (\cite{razali2011power})}
+    	\begin{columns}
+    		\begin{column}{0.2\textwidth}
+    			\noindent \emphtext{Prerequisites:}\\[10pt]
+    			\begin{itemize}
+    				\item[\emphtext{H$\bm{0}$}] normal.\\[10pt]
+    				\item[\emphtext{H$\bm{1}$}] not normal.\\[10pt]
+    				\item[\emphtext{$\bm{\alpha}$}] $10\%$.\\[10pt]
+    			\end{itemize}
+    		\end{column}
+    		\begin{column}{0.8\textwidth}
+				\begin{table}[H]
+					\begin{tabular}{cccc}
+						\toprule
+						 & \emphtext{Setosa} & \emphtext{Versicolor} & \emphtext{Virginica}\\
+						 \midrule[0.02cm]
+						 \emphtext{Sepal len.} & $0.459$ & $0.465$ & $0.258$\\[0.1cm]
+						 \emphtext{Sepal wid.} & $0.272$ & $0.338$ & $0.181$\\[0.1cm]
+						 \emphtext{Petal len.} & {\color{red}$0.055$} & $0.158$ & $0.110$\\[0.1cm]
+						 \emphtext{Petal wid.} & {\color{red}$0.000$} & {\color{red}$0.027$} & {\color{red}$0.087$}\\[0.1cm]
+						\midrule[0.02cm]
+					\end{tabular}
+					\caption{P-val for SW test statistics}
+				\end{table}
+			\end{column}
+    	\end{columns}
+    	\noindent \emphtext{Conclusion:} under other things being equal data is normal.
+    \end{frame}
+    
+    \subsection{Fitting results}
+    \begin{frame}{Fitting results}
+		\begin{figure}[H]
+			\begin{tikzpicture}[spy using outlines={rectangle, magnification=3,connect spies}]
+				\begin{axis}[
+					ymajorgrids, width=\textwidth, height=0.4\textwidth,
+					xmin=0, xmax=1, ymin=0.85, ymax=1,
+					legend cell align={left},
+					legend style={at={(0.09, 0.3)}, anchor=north, nodes={scale=0.6}},
+					xlabel={\emphtext{Train size (ratio)}},
+					ylabel={\emphtext{Score}},
+					ytick={0.85, 0.9, 0.95, 0.965812, 1},
+					yticklabels={0.85, 0.9, 0.95, 0.965, 1},
+				]
+				
+					\addplot [color=blue, mark=square*] table[x=size, y=acc] {./source/csv/metrics.csv};
+					\addplot [color=red, mark=triangle*] table[x=size, y=f1] {./source/csv/metrics.csv};
+					\addplot [thick, dashed] {0.965812};
+					\addplot [dashed, thick] coordinates {(0.225, 0.85) (0.225, 1)};
+					\addplot [dashed, thick] coordinates {(0.825, 0.85) (0.825, 1)};
+					
+					\node at (0.225,0.85) [circle, fill, inner sep=1.5pt]{};
+					\node at (0.825,0.85) [circle, fill, inner sep=1.5pt]{};
+					\draw [black,   -latex, thick      ] (0.27,0.87) node [right] {$\bm{0.225}$} -- (0.23,0.855);
+					\draw [black,   -latex, thick      ] (0.78,0.87) node [left] {$\bm{0.825}$} -- (0.82,0.855);
+					
+					\draw [black,   -latex, thick      ] (0.88,0.94) node [right] {$\bm{0.962}$} -- (0.84,0.95725);
+					
+					\coordinate (spypoint) at (axis cs:0.825,0.962);
+					\coordinate (spyviewer) at (axis cs:0.65,1);
+					\spy[width=5cm,height=0.8cm] on (spypoint) in node [fill=white] at (spyviewer);
+					
+					\legend{{Accuracy}, {F1}, {Max Score},};
+				\end{axis}
+			\end{tikzpicture}
+		\end{figure}
+	\end{frame}
+	
+	\section{Summary}
+	\begin{frame}{Summary: topics covered}
+		\begin{enumerate}
+			\item \emphtext{Purposes} and \emphtext{applications} of Bayesian Classifier.\\[10pt]
+			\item \emphtext{Maths} behind the algorithm. \\[10pt]
+			\item \emphtext{Limitations}. \\[10pt]
+			\item \emphtext{Example} on iris dataset.\\[10pt]
+			\item \emphtext{Best} score ($\bm{0.965}$ accuracy) reached at $\bm{0.225}$ train ratio.
+		\end{enumerate}
+	\end{frame}
+    
+    \subsection{References}
+    \begin{frame}{References}
+    	\bibliographystyle{apalike}
+    	\bibliography{./source/bibliography/bibliography}
+    \end{frame}
+    
+    \subsection{Conclusion}
+    \begin{frame}{Conclusions}
+    	\begin{center}
+    		{\Huge Thank you for attention!}\\
+    		\vspace{10pt}
+    		{\Large Questions are welcome.}
+    	\end{center}
+    \end{frame}
+\end{document}
+
+\begin{comment}
+	\begin{equation}
+		\left\{\begin{array}{lclcl}
+			\label{eqn:mle_normal_m_features}
+			\displaystyle \hat{\mu}_i &\displaystyle =&\displaystyle \frac{\sum_{j = 1}^n X_{ji}}{n} & : & i = \overline{1, m} \\\\
+			\displaystyle \hat{\sigma}_i^2 &\displaystyle =&\displaystyle \frac{\sum_{j = 1}^n \left(X_{ji} - \bar{X}_i\right)^2}{n - 1} & : & i = \overline{1, m}
+		\end{array}\right.
+	\end{equation}
+\end{comment}
+
+\begin{comment}
+	\begin{figure}
+		\begin{tikzpicture}
+			\begin{axis}[
+				boxplot/draw direction = x,
+				xmin=4.2, xmax=5.8,
+				width=0.8\textwidth, height=0.225\textwidth,
+				ytick= {1},
+				yticklabel style={align=center, font=\small, rotate=90},
+				yticklabel={Setosa}
+				]
+				\addplot[boxplot, draw=black, thick] table [y index=0] {./source/csv/setosa.csv};
+			\end{axis}
+		\end{tikzpicture}
+		\caption{Sepal length}
+	\end{figure}
+\end{comment}
+
+\begin{comment}
+	Local zoom concept:
+	https://tex.stackexchange.com/questions/18716/inset-plot-with-pgfplots#18720
+\end{comment}

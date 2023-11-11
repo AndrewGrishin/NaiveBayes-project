@@ -1,0 +1,14 @@
+\frametitle{Model assumptions}
+\emphtext{Let} $X \in \R^{n \times m}$, $y \in \left\{C_1, C_2, \ldots, C_k\right\}$. \emphtext{Then} we need to find $f(\cdot)$ such as:
+    	\begin{equation}
+    		\Expect{y \mid X} = f\left(X\right) \Leftrightarrow y = f\left(X\right) + \epsilon, \;\;\;\; \epsilon \sim \N\left(0, \sigma^2\right)
+    	\end{equation}
+    	
+    	\noindent \emphtext{So}, $X_j \in \R^{1 \times m}: j = \overline{1, n}$ is r.v. \emphtext{Finally}\footnote{\emphtext{Note}: classification $\equiv$ regression. Predict the $\Prob{X_j} \in \left[0, 1\right] \times \ldots \times \left[0, 1\right] = \left[0, 1\right]^k$.}, we need to estimate $\mu$ and $\Sigma$ $\equiv$ tough.\\[10pt]
+    	
+    	\emphtext{Assume}:\\[5pt]
+    	\begin{itemize}
+    		\item That $X_j \sim \emphmath{N}\left(\mu, \Sigma \right): \mu \in \R^{m \times 1}, \Sigma \in \R^{m \times m}$.\\[5pt]
+    		\item That $X_j = \left[\xi_1, \ldots, \xi_m\right]: \xi_i \overset{\text{i.i.d.}}{\sim} \emphmath{N}\left(\mu_i, \sigma_i^2\right)$
+    	\end{itemize}
+    	

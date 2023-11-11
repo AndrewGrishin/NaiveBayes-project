@@ -1,0 +1,99 @@
+\headcommand {\beamer@sectionpages {1}{0}}
+\headcommand {\beamer@subsectionpages {1}{0}}
+\headcommand {\sectionentry {1}{Introduction}{1}{Introduction}{0}}
+\headcommand {\slideentry {1}{0}{1}{1/1}{}{0}}
+\headcommand {\beamer@framepages {1}{1}}
+\headcommand {\slideentry {1}{0}{2}{2/2}{}{0}}
+\headcommand {\beamer@framepages {2}{2}}
+\headcommand {\beamer@subsectionpages {1}{2}}
+\headcommand {\beamer@subsectionentry {0}{1}{1}{3}{What is Bayesian Classifier?}}
+\headcommand {\slideentry {1}{1}{1}{3/3}{What is Bayesian Classifier?}{0}}
+\headcommand {\beamer@framepages {3}{3}}
+\headcommand {\beamer@subsectionpages {3}{3}}
+\headcommand {\beamer@subsectionentry {0}{1}{2}{4}{Why (what for) do we need it?}}
+\headcommand {\slideentry {1}{2}{1}{4/4}{Why (what for) do we need it?}{0}}
+\headcommand {\beamer@framepages {4}{4}}
+\headcommand {\beamer@sectionpages {1}{4}}
+\headcommand {\beamer@subsectionpages {4}{4}}
+\headcommand {\sectionentry {2}{Maths of Bayesian Classifier}{5}{Maths of Bayesian Classifier}{0}}
+\headcommand {\beamer@subsectionpages {5}{4}}
+\headcommand {\beamer@subsectionentry {0}{2}{1}{5}{Model assumptions}}
+\headcommand {\slideentry {2}{1}{1}{5/5}{Model assumptions}{0}}
+\headcommand {\beamer@framepages {5}{5}}
+\headcommand {\beamer@subsectionpages {5}{5}}
+\headcommand {\beamer@subsectionentry {0}{2}{2}{6}{Main maths}}
+\headcommand {\slideentry {2}{2}{1}{6/6}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{6}}
+\headcommand {\slideentry {2}{2}{1}{6/7}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{7}}
+\headcommand {\slideentry {2}{2}{1}{6/8}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{8}}
+\headcommand {\slideentry {2}{2}{1}{6/9}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{9}}
+\headcommand {\slideentry {2}{2}{1}{6/10}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{10}}
+\headcommand {\slideentry {2}{2}{1}{6/11}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{11}}
+\headcommand {\slideentry {2}{2}{1}{6/12}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{12}}
+\headcommand {\slideentry {2}{2}{1}{6/13}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{13}}
+\headcommand {\slideentry {2}{2}{1}{6/14}{Main maths}{0}}
+\headcommand {\beamer@framepages {6}{14}}
+\headcommand {\beamer@sectionpages {5}{14}}
+\headcommand {\beamer@subsectionpages {6}{14}}
+\headcommand {\sectionentry {3}{Iris classification problem}{15}{Iris classification problem}{0}}
+\headcommand {\beamer@subsectionpages {15}{14}}
+\headcommand {\beamer@subsectionentry {0}{3}{1}{15}{Problem state}}
+\headcommand {\slideentry {3}{1}{1}{15/15}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{15}}
+\headcommand {\slideentry {3}{1}{1}{15/16}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{16}}
+\headcommand {\slideentry {3}{1}{1}{15/17}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{17}}
+\headcommand {\slideentry {3}{1}{1}{15/18}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{18}}
+\headcommand {\slideentry {3}{1}{1}{15/19}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{19}}
+\headcommand {\slideentry {3}{1}{1}{15/20}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{20}}
+\headcommand {\slideentry {3}{1}{1}{15/21}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{21}}
+\headcommand {\slideentry {3}{1}{1}{15/22}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{22}}
+\headcommand {\slideentry {3}{1}{1}{15/23}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{23}}
+\headcommand {\slideentry {3}{1}{1}{15/24}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{24}}
+\headcommand {\slideentry {3}{1}{1}{15/25}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{25}}
+\headcommand {\slideentry {3}{1}{1}{15/26}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{26}}
+\headcommand {\slideentry {3}{1}{1}{15/27}{Problem state}{0}}
+\headcommand {\beamer@framepages {15}{27}}
+\headcommand {\slideentry {3}{1}{2}{28/28}{Problem state}{0}}
+\headcommand {\beamer@framepages {28}{28}}
+\headcommand {\slideentry {3}{1}{3}{29/29}{Problem state}{0}}
+\headcommand {\beamer@framepages {29}{29}}
+\headcommand {\beamer@subsectionpages {15}{29}}
+\headcommand {\beamer@subsectionentry {0}{3}{2}{30}{Fitting results}}
+\headcommand {\slideentry {3}{2}{1}{30/30}{Fitting results}{0}}
+\headcommand {\beamer@framepages {30}{30}}
+\headcommand {\beamer@sectionpages {15}{30}}
+\headcommand {\beamer@subsectionpages {30}{30}}
+\headcommand {\sectionentry {4}{Summary}{31}{Summary}{0}}
+\headcommand {\slideentry {4}{0}{1}{31/31}{}{0}}
+\headcommand {\beamer@framepages {31}{31}}
+\headcommand {\beamer@subsectionpages {31}{31}}
+\headcommand {\beamer@subsectionentry {0}{4}{1}{32}{References}}
+\headcommand {\slideentry {4}{1}{1}{32/32}{References}{0}}
+\headcommand {\beamer@framepages {32}{32}}
+\headcommand {\beamer@subsectionpages {32}{32}}
+\headcommand {\beamer@subsectionentry {0}{4}{2}{33}{Conclusion}}
+\headcommand {\slideentry {4}{2}{1}{33/33}{Conclusion}{0}}
+\headcommand {\beamer@framepages {33}{33}}
+\headcommand {\beamer@partpages {1}{33}}
+\headcommand {\beamer@subsectionpages {33}{33}}
+\headcommand {\beamer@sectionpages {31}{33}}
+\headcommand {\beamer@documentpages {33}}
+\headcommand {\gdef \inserttotalframenumber {33}}

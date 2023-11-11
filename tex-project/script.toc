@@ -1,0 +1,12 @@
+\beamer@sectionintoc {1}{Introduction}{1}{0}{1}
+\beamer@subsectionintoc {1}{1}{What is Bayesian Classifier?}{3}{0}{1}
+\beamer@subsectionintoc {1}{2}{Why (what for) do we need it?}{4}{0}{1}
+\beamer@sectionintoc {2}{Maths of Bayesian Classifier}{5}{0}{2}
+\beamer@subsectionintoc {2}{1}{Model assumptions}{5}{0}{2}
+\beamer@subsectionintoc {2}{2}{Main maths}{6}{0}{2}
+\beamer@sectionintoc {3}{Iris classification problem}{15}{0}{3}
+\beamer@subsectionintoc {3}{1}{Problem state}{15}{0}{3}
+\beamer@subsectionintoc {3}{2}{Fitting results}{30}{0}{3}
+\beamer@sectionintoc {4}{Summary}{31}{0}{4}
+\beamer@subsectionintoc {4}{1}{References}{32}{0}{4}
+\beamer@subsectionintoc {4}{2}{Conclusion}{33}{0}{4}
